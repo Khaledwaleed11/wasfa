@@ -48,6 +48,8 @@ The application includes:
 
 ## Project Structure
 
+Project Structure : 
+```text
 lib/
 ├── api_services/
 │   └── meal_api_service.dart
@@ -93,11 +95,11 @@ lib/
 │   └── app_theme.dart
 │
 └── main.dart
-
+```
 ## Architecture
 
 Wasfa follows a simple layered structure:
-
+```text
 UI
 │
 ├── Screens
@@ -109,7 +111,7 @@ UI
 ├── API Services
 │
 └── Models
-
+```
 ### API Layer
 
 `MealApiService` handles communication with TheMealDB API.
@@ -199,43 +201,41 @@ The API provides:
 ## Screenshots
 
 ![Home]
-
-<img width="300" height="700" alt="wasfa_home" src="https://github.com/user-attachments/assets/fe3f52eb-0177-4cf6-a3e3-8d31514131c1" />
-
+<p align="center">
+<img width="300" height="700" alt="wasfa_home" src="https://github.com/user-attachments/assets/fe3f52eb-0177-4cf6-a3e3-8d31514131c1" / >
+<p>
 ![Home2]
+<p align="center">
 <img width="300" height="700" alt="wasfa_home2" src="https://github.com/user-attachments/assets/6e94d8dd-904b-48cf-8239-fbb4d0af9a04" />
-
-
+<p>
 ![Search]
-
+<p align="center">
 <img width="300" height="700" alt="wasfa_search" src="https://github.com/user-attachments/assets/aaa42fb2-e4e8-41dd-a749-a08852445cfd" />
-
-
+<p>
 ![Categories]
-
+<p align="center">
 <img width="300" height="700" alt="wasfa_categories" src="https://github.com/user-attachments/assets/2f9c5836-2513-4537-8c60-fc972e895fcf" />
-
+<p>
 ![Categories2]
-
+<p align="center">
 <img width="300" height="700" alt="wasfa_categories2" src="https://github.com/user-attachments/assets/62fdbc31-e93a-4926-852c-74f6bc29caec" />
-
-
+<p>
 ![Recipe Details]
-
+<p align="center">
 <img width="300" height="700" alt="wasga_recipe_detials" src="https://github.com/user-attachments/assets/e6a59595-bdc5-46d7-b227-b3be1fc78a4c" />
-
+<p>
 ![Favorites]
-
+<p align="center">
 <img width="300" height="700" alt="wasfa_favourites" src="https://github.com/user-attachments/assets/079693d1-7ac5-44cd-bd34-3ed117402ac0" />
-
+<p>
 ![Shopping List]
-
+<p align="center">
 <img width="300" height="700" alt="wasfa_shopping_list" src="https://github.com/user-attachments/assets/bd7f6cfd-38a5-4fda-83e8-5d7780a1afdd" />
-
+<p>
 ![Settings]
-
+<p align="center">
 <img width="300" height="700" alt="wasfa_setting" src="https://github.com/user-attachments/assets/aed2d8ad-4478-404d-aa65-8a809cc39ab6" />
-
+<p>
 ## Future Improvements
 
 Possible future improvements include:
