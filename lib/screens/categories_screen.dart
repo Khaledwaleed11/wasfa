@@ -61,14 +61,18 @@ class _CategoriesScreenState extends State<CategoriesScreen>
 
   Future<void> _loadCategories() async {
     try {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = true;
+          _errorMessage = null;
+        });
+      }
 
       final result = await _mealService.getCategories();
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
         _allCategories = result;
@@ -78,7 +82,9 @@ class _CategoriesScreenState extends State<CategoriesScreen>
 
       _pageController.forward(from: 0);
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
         _isLoading = false;
@@ -88,15 +94,17 @@ class _CategoriesScreenState extends State<CategoriesScreen>
   }
 
   void _filterCategories() {
+    if (!mounted) {
+      return;
+    }
+
     final query = _searchController.text.trim().toLowerCase();
 
     final filtered = query.isEmpty
         ? _allCategories
-        : _allCategories.where((category) {
-            return category.name.toLowerCase().contains(query);
-          }).toList();
-
-    if (!mounted) return;
+        : _allCategories
+              .where((category) => category.name.toLowerCase().contains(query))
+              .toList();
 
     setState(() {
       _filteredCategories = filtered;
@@ -158,12 +166,14 @@ class _CategoriesScreenState extends State<CategoriesScreen>
     _searchController.dispose();
     _searchFocusNode.dispose();
     _pageController.dispose();
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     final colors = theme.colorScheme;
 
     return Scaffold(
@@ -378,10 +388,12 @@ class _CategoriesScreenState extends State<CategoriesScreen>
       itemBuilder: (context, index) {
         final category = _filteredCategories[index];
 
+        final duration = 350 + (index * 35).clamp(0, 300);
+
         return TweenAnimationBuilder<double>(
           key: ValueKey(category.id),
           tween: Tween<double>(begin: 0, end: 1),
-          duration: Duration(milliseconds: 350 + (index * 35).clamp(0, 300)),
+          duration: Duration(milliseconds: duration),
           curve: Curves.easeOutCubic,
           builder: (context, value, child) {
             return Opacity(

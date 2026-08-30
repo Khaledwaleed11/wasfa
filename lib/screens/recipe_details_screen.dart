@@ -31,6 +31,7 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen>
   bool isLoading = true;
   bool isFavorite = false;
   bool isAddingToShoppingList = false;
+  bool isTogglingFavorite = false;
 
   String? errorMessage;
 
@@ -67,14 +68,19 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen>
       return;
     }
 
-    final uri = Uri.tryParse(
-      cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')
-          ? cleanedUrl
-          : 'https://$cleanedUrl',
-    );
+    final normalizedUrl =
+        cleanedUrl.startsWith('http://') || cleanedUrl.startsWith('https://')
+        ? cleanedUrl
+        : 'https://$cleanedUrl';
 
-    if (uri == null || uri.host.isEmpty) {
-      if (!mounted) return;
+    final uri = Uri.tryParse(normalizedUrl);
+
+    if (uri == null ||
+        (uri.scheme != 'http' && uri.scheme != 'https') ||
+        uri.host.isEmpty) {
+      if (!mounted) {
+        return;
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -101,7 +107,9 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen>
         );
       }
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -114,10 +122,12 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen>
 
   Future<void> loadMeal() async {
     try {
-      setState(() {
-        isLoading = true;
-        errorMessage = null;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = true;
+          errorMessage = null;
+        });
+      }
 
       final result = await mealService.getMealDetails(widget.mealId);
 
@@ -125,7 +135,9 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen>
 
       await RecentMealsService.addRecentMeal(result);
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
         meal = result;
@@ -135,7 +147,9 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen>
 
       _pageController.forward(from: 0);
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
         isLoading = false;
@@ -145,33 +159,64 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen>
   }
 
   Future<void> toggleFavorite() async {
+    if (isTogglingFavorite) {
+      return;
+    }
+
     final currentMeal = meal;
 
     if (currentMeal == null) {
       return;
     }
 
-    final result = await FavoritesService.toggleFavorite(currentMeal);
-
-    if (!mounted) return;
-
     setState(() {
-      isFavorite = result;
+      isTogglingFavorite = true;
     });
 
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    try {
+      final result = await FavoritesService.toggleFavorite(currentMeal);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          result
-              ? 'Recipe added to favorites ❤️'
-              : 'Recipe removed from favorites',
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        isFavorite = result;
+      });
+
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result
+                ? 'Recipe added to favorites ❤️'
+                : 'Recipe removed from favorites',
+          ),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(milliseconds: 1300),
         ),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(milliseconds: 1300),
-      ),
-    );
+      );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to update favorites.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isTogglingFavorite = false;
+        });
+      }
+    }
   }
 
   Future<void> addIngredientsToShoppingList() async {
@@ -199,9 +244,15 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen>
           .where((item) => item.name.isNotEmpty)
           .toList();
 
+      if (items.isEmpty) {
+        throw Exception('No ingredients found');
+      }
+
       await ShoppingListService.addItems(items);
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
@@ -213,7 +264,9 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen>
         ),
       );
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
@@ -235,12 +288,14 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen>
   @override
   void dispose() {
     _pageController.dispose();
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     final colors = theme.colorScheme;
 
     return Scaffold(
@@ -258,7 +313,7 @@ class _RecipeDetailsScreenState extends State<RecipeDetailsScreen>
       return BuildError(
         title: 'Failed to Load Recipe',
         message: 'Something went wrong while loading the recipe.',
-        onRetry: () => loadMeal(),
+        onRetry: loadMeal,
         icon: Icons.restaurant_menu_outlined,
       );
     }

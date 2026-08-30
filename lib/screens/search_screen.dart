@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../models/meal_model.dart';
 import '../services/meal_service.dart';
-import '../services/recent_meal_service.dart';
 import '../widgets/build_error.dart';
 import '../widgets/build_loading.dart';
 import '../widgets/empty_state.dart';
@@ -20,7 +19,9 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen>
     with TickerProviderStateMixin {
   final MealService _mealService = MealService();
+
   final TextEditingController _searchController = TextEditingController();
+
   final FocusNode _searchFocusNode = FocusNode();
 
   List<MealModel> _results = [];
@@ -59,7 +60,7 @@ class _SearchScreenState extends State<SearchScreen>
   Future<void> _searchMeals() async {
     final query = _searchController.text.trim();
 
-    if (query.isEmpty) {
+    if (query.isEmpty || _isLoading) {
       return;
     }
 
@@ -97,8 +98,6 @@ class _SearchScreenState extends State<SearchScreen>
   }
 
   Future<void> _openMeal(MealModel meal) async {
-    await RecentMealsService.addRecentMeal(meal);
-
     if (!mounted) {
       return;
     }
@@ -111,6 +110,10 @@ class _SearchScreenState extends State<SearchScreen>
 
   void _clearSearch() {
     _searchController.clear();
+
+    if (!mounted) {
+      return;
+    }
 
     setState(() {
       _results = [];
@@ -127,12 +130,14 @@ class _SearchScreenState extends State<SearchScreen>
     _searchController.dispose();
     _searchFocusNode.dispose();
     _pageController.dispose();
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     final colors = theme.colorScheme;
 
     return Scaffold(
@@ -153,7 +158,9 @@ class _SearchScreenState extends State<SearchScreen>
               onSearch: _searchMeals,
               onClear: _clearSearch,
               onChanged: (_) {
-                setState(() {});
+                if (mounted) {
+                  setState(() {});
+                }
               },
             ),
             Expanded(child: _buildBody(colors)),

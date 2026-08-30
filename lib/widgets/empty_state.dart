@@ -5,6 +5,7 @@ class EmptyState extends StatelessWidget {
   final String title;
   final String message;
   final String? buttonText;
+  final IconData buttonIcon;
   final VoidCallback? onButtonPressed;
 
   const EmptyState({
@@ -13,6 +14,7 @@ class EmptyState extends StatelessWidget {
     required this.title,
     required this.message,
     this.buttonText,
+    this.buttonIcon = Icons.explore_outlined,
     this.onButtonPressed,
   });
 
@@ -26,9 +28,6 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // ==================================================
-            // ICON
-            // ==================================================
             Container(
               width: 96,
               height: 96,
@@ -38,12 +37,7 @@ class EmptyState extends StatelessWidget {
               ),
               child: Icon(icon, size: 44, color: colors.primary),
             ),
-
             const SizedBox(height: 20),
-
-            // ==================================================
-            // TITLE
-            // ==================================================
             Text(
               title,
               textAlign: TextAlign.center,
@@ -53,12 +47,7 @@ class EmptyState extends StatelessWidget {
                 color: colors.onSurface,
               ),
             ),
-
             const SizedBox(height: 8),
-
-            // ==================================================
-            // MESSAGE
-            // ==================================================
             Text(
               message,
               textAlign: TextAlign.center,
@@ -69,16 +58,11 @@ class EmptyState extends StatelessWidget {
                 color: colors.onSurfaceVariant,
               ),
             ),
-
-            // ==================================================
-            // BUTTON
-            // ==================================================
             if (buttonText != null && onButtonPressed != null) ...[
               const SizedBox(height: 20),
-
               OutlinedButton.icon(
                 onPressed: onButtonPressed,
-                icon: const Icon(Icons.explore_outlined),
+                icon: Icon(buttonIcon),
                 label: Text(buttonText!),
               ),
             ],

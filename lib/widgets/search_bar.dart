@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class SearchBarWidget extends StatelessWidget {
+class SearchBarWidget extends StatefulWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
   final VoidCallback onSearch;
@@ -21,39 +21,91 @@ class SearchBarWidget extends StatelessWidget {
   });
 
   @override
+  State<SearchBarWidget> createState() => _SearchBarWidgetState();
+}
+
+class _SearchBarWidgetState extends State<SearchBarWidget> {
+  @override
+  void initState() {
+    super.initState();
+
+    widget.controller.addListener(_onControllerChanged);
+  }
+
+  void _onControllerChanged() {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {});
+  }
+
+  @override
+  void didUpdateWidget(covariant SearchBarWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_onControllerChanged);
+
+      widget.controller.addListener(_onControllerChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onControllerChanged);
+
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
       child: TextField(
-        controller: controller,
-        focusNode: focusNode,
+        controller: widget.controller,
+        focusNode: widget.focusNode,
         textDirection: TextDirection.ltr,
         textInputAction: TextInputAction.search,
-        onChanged: onChanged,
-        onSubmitted: (_) => onSearch(),
+        onChanged: widget.onChanged,
+        onSubmitted: (_) => widget.onSearch(),
         decoration: InputDecoration(
-          hintText: hintText,
+          hintText: widget.hintText,
           prefixIcon: Icon(Icons.search_rounded, color: colors.primary),
-          suffixIcon: controller.text.isNotEmpty
-              ? Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      onPressed: onClear,
-                      icon: const Icon(Icons.close_rounded),
-                    ),
-                    if (showSearchButton) _buildSearchButton(colors),
-                  ],
-                )
-              : showSearchButton
-              ? Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: _buildSearchButton(colors),
-                )
-              : null,
+          suffixIcon: _buildSuffixContent(colors),
         ),
+      ),
+    );
+  }
+
+  Widget? _buildSuffixContent(ColorScheme colors) {
+    final hasText = widget.controller.text.isNotEmpty;
+
+    if (!hasText && !widget.showSearchButton) {
+      return null;
+    }
+
+    if (!widget.showSearchButton) {
+      return IconButton(
+        onPressed: widget.onClear,
+        icon: const Icon(Icons.close_rounded),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 6, left: 4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (hasText)
+            IconButton(
+              onPressed: widget.onClear,
+              icon: const Icon(Icons.close_rounded),
+            ),
+          _buildSearchButton(colors),
+        ],
       ),
     );
   }
@@ -63,7 +115,7 @@ class SearchBarWidget extends StatelessWidget {
       color: colors.primary,
       shape: const CircleBorder(),
       child: InkWell(
-        onTap: onSearch,
+        onTap: widget.onSearch,
         customBorder: const CircleBorder(),
         child: const SizedBox(
           width: 38,

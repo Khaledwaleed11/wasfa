@@ -28,7 +28,7 @@ class _FavoriteButtonState extends State<FavoriteButton>
   late final Animation<double> _scaleAnimation;
   late final Box _favoritesBox;
 
-  bool _isLoading = true;
+  bool _isToggling = false;
 
   @override
   void initState() {
@@ -45,62 +45,39 @@ class _FavoriteButtonState extends State<FavoriteButton>
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
     _favoritesBox = Hive.box('favoriteMeals');
-
-    _favoritesBox.listenable().addListener(_onFavoritesChanged);
-
-    _loadFavoriteState();
   }
 
-  Future<void> _loadFavoriteState() async {
-    try {
-      await FavoritesService.isFavorite(widget.meal.id);
-
-      if (!mounted) return;
-
-      setState(() {
-        _isLoading = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-
-      setState(() {
-        _isLoading = false;
-      });
+  Future<void> _toggleFavorite(bool isFavorite) async {
+    if (_isToggling) {
+      return;
     }
-  }
-
-  void _onFavoritesChanged() {
-    if (!mounted) return;
 
     setState(() {
-      _isLoading = false;
-    });
-  }
-
-  Future<void> _toggleFavorite() async {
-    if (_isLoading) return;
-
-    setState(() {
-      _isLoading = true;
+      _isToggling = true;
     });
 
     try {
       final result = await FavoritesService.toggleFavorite(widget.meal);
 
-      if (!mounted) return;
-
-      setState(() {
-        _isLoading = false;
-      });
+      if (!mounted) {
+        return;
+      }
 
       widget.onChanged?.call(result);
 
       if (result) {
-        await _controller.forward();
+        await _controller.forward(from: 0);
+
+        if (!mounted) {
+          return;
+        }
+
         await _controller.reverse();
       }
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
@@ -116,11 +93,9 @@ class _FavoriteButtonState extends State<FavoriteButton>
         ),
       );
     } catch (_) {
-      if (!mounted) return;
-
-      setState(() {
-        _isLoading = false;
-      });
+      if (!mounted) {
+        return;
+      }
 
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
@@ -131,28 +106,18 @@ class _FavoriteButtonState extends State<FavoriteButton>
           duration: Duration(milliseconds: 1100),
         ),
       );
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant FavoriteButton oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    if (oldWidget.meal.id != widget.meal.id) {
-      setState(() {
-        _isLoading = true;
-      });
-
-      _loadFavoriteState();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isToggling = false;
+        });
+      }
     }
   }
 
   @override
   void dispose() {
-    _favoritesBox.listenable().removeListener(_onFavoritesChanged);
-
     _controller.dispose();
-
     super.dispose();
   }
 
@@ -160,7 +125,7 @@ class _FavoriteButtonState extends State<FavoriteButton>
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
-    return ValueListenableBuilder(
+    return ValueListenableBuilder<Box>(
       valueListenable: _favoritesBox.listenable(),
       builder: (context, box, _) {
         final isFavorite = box.containsKey(widget.meal.id);
@@ -171,11 +136,11 @@ class _FavoriteButtonState extends State<FavoriteButton>
               : Colors.transparent,
           shape: const CircleBorder(),
           child: InkWell(
-            onTap: _toggleFavorite,
+            onTap: _isToggling ? null : () => _toggleFavorite(isFavorite),
             customBorder: const CircleBorder(),
             child: Padding(
               padding: const EdgeInsets.all(9),
-              child: _isLoading
+              child: _isToggling
                   ? SizedBox(
                       width: widget.size,
                       height: widget.size,

@@ -12,7 +12,6 @@ Future<void> main() async {
   await Hive.openBox('favoriteMeals');
   await Hive.openBox('recentMeals');
   await Hive.openBox('shopping_list');
-  await Hive.openBox('translations');
   await Hive.openBox('settings');
 
   final settingsBox = Hive.box('settings');

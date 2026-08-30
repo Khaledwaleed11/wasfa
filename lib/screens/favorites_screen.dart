@@ -14,10 +14,10 @@ class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
 
   @override
-  State<FavoritesScreen> createState() => FavoritesScreenState();
+  State<FavoritesScreen> createState() => _FavoritesScreenState();
 }
 
-class FavoritesScreenState extends State<FavoritesScreen>
+class _FavoritesScreenState extends State<FavoritesScreen>
     with TickerProviderStateMixin {
   static const String _boxName = 'favoriteMeals';
 
@@ -60,11 +60,14 @@ class FavoritesScreenState extends State<FavoritesScreen>
           : await Hive.openBox(_boxName);
 
       _favoritesBox = box;
+
       box.listenable().addListener(_onFavoritesChanged);
 
       await loadFavorites();
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
         isLoading = false;
@@ -87,10 +90,21 @@ class FavoritesScreenState extends State<FavoritesScreen>
       return;
     }
 
-    final result = box.values
-        .whereType<Map>()
-        .map((item) => MealModel.fromJson(Map<String, dynamic>.from(item)))
-        .toList();
+    final result = <MealModel>[];
+
+    for (final value in box.values) {
+      if (value is! Map) {
+        continue;
+      }
+
+      try {
+        result.add(MealModel.fromJson(Map<String, dynamic>.from(value)));
+      } catch (_) {}
+    }
+
+    if (!mounted) {
+      return;
+    }
 
     setState(() {
       favorites = result;
@@ -102,7 +116,9 @@ class FavoritesScreenState extends State<FavoritesScreen>
     try {
       final result = await FavoritesService.getFavorites();
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
         favorites = result;
@@ -111,7 +127,9 @@ class FavoritesScreenState extends State<FavoritesScreen>
 
       _pageController.forward(from: 0);
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
         isLoading = false;
@@ -122,7 +140,9 @@ class FavoritesScreenState extends State<FavoritesScreen>
   Future<void> openRecipe(MealModel meal) async {
     await RecentMealsService.addRecentMeal(meal);
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     await Navigator.push(
       context,
@@ -133,7 +153,9 @@ class FavoritesScreenState extends State<FavoritesScreen>
   }
 
   void removeFavoriteFromUi(MealModel meal) {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     setState(() {
       favorites.removeWhere((item) => item.id == meal.id);
@@ -188,7 +210,9 @@ class FavoritesScreenState extends State<FavoritesScreen>
 
     await FavoritesService.clearFavorites();
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     setState(() {
       favorites.clear();
@@ -271,12 +295,12 @@ class FavoritesScreenState extends State<FavoritesScreen>
               delegate: SliverChildBuilderDelegate((context, index) {
                 final meal = favorites[index];
 
+                final duration = 250 + ((index % 6) * 40);
+
                 return TweenAnimationBuilder<double>(
                   key: ValueKey(meal.id),
                   tween: Tween<double>(begin: 0, end: 1),
-                  duration: Duration(
-                    milliseconds: 250 + ((index % 6) * 40).clamp(0, 220),
-                  ),
+                  duration: Duration(milliseconds: duration),
                   curve: Curves.easeOutCubic,
                   builder: (context, value, child) {
                     return Opacity(

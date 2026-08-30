@@ -54,17 +54,19 @@ class _CategoryMealsScreenState extends State<CategoryMealsScreen>
   }
 
   Future<void> _loadMeals({bool refresh = false}) async {
-    try {
-      if (!refresh) {
-        setState(() {
-          _isLoading = true;
-          _errorMessage = null;
-        });
-      }
+    if (!refresh) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    }
 
+    try {
       final result = await _mealService.getMealsByCategory(widget.categoryName);
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
         _meals = result;
@@ -74,7 +76,9 @@ class _CategoryMealsScreenState extends State<CategoryMealsScreen>
 
       _pageController.forward(from: 0);
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
         _isLoading = false;
@@ -86,7 +90,9 @@ class _CategoryMealsScreenState extends State<CategoryMealsScreen>
   Future<void> _openMeal(MealModel meal) async {
     await RecentMealsService.addRecentMeal(meal);
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     await Navigator.push(
       context,
@@ -137,7 +143,7 @@ class _CategoryMealsScreenState extends State<CategoryMealsScreen>
         title: 'Failed to Load Recipes',
         message: 'Check your internet connection and try again.',
         buttonText: 'Try Again',
-        onRetry: () => _loadMeals(),
+        onRetry: _loadMeals,
       );
     }
 
@@ -172,12 +178,12 @@ class _CategoryMealsScreenState extends State<CategoryMealsScreen>
                   delegate: SliverChildBuilderDelegate((context, index) {
                     final meal = _meals[index];
 
+                    final duration = 350 + ((index % 8) * 45);
+
                     return TweenAnimationBuilder<double>(
                       key: ValueKey(meal.id),
                       tween: Tween<double>(begin: 0, end: 1),
-                      duration: Duration(
-                        milliseconds: 350 + ((index % 8) * 45).clamp(0, 350),
-                      ),
+                      duration: Duration(milliseconds: duration),
                       curve: Curves.easeOutCubic,
                       builder: (context, value, child) {
                         return Opacity(

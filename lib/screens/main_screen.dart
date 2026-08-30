@@ -23,16 +23,44 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int currentIndex = 0;
 
-  List<Widget> get pages => [
-    const HomeScreen(),
-    const SearchScreen(),
-    const FavoritesScreen(),
-    const ShoppingListScreen(),
-    SettingsScreen(
+  late List<Widget> pages;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _initializePages();
+  }
+
+  @override
+  void didUpdateWidget(covariant MainScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.isDarkMode != widget.isDarkMode ||
+        oldWidget.onThemeToggle != widget.onThemeToggle) {
+      _updateSettingsPage();
+    }
+  }
+
+  void _initializePages() {
+    pages = [
+      const HomeScreen(),
+      const SearchScreen(),
+      const FavoritesScreen(),
+      const ShoppingListScreen(),
+      SettingsScreen(
+        isDarkMode: widget.isDarkMode,
+        onThemeToggle: widget.onThemeToggle,
+      ),
+    ];
+  }
+
+  void _updateSettingsPage() {
+    pages[4] = SettingsScreen(
       isDarkMode: widget.isDarkMode,
       onThemeToggle: widget.onThemeToggle,
-    ),
-  ];
+    );
+  }
 
   void changePage(int index) {
     if (index == currentIndex) {

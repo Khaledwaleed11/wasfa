@@ -13,8 +13,12 @@ class ShoppingListScreen extends StatefulWidget {
 
 class _ShoppingListScreenState extends State<ShoppingListScreen>
     with SingleTickerProviderStateMixin {
+  static const String _boxName = ShoppingListService.boxName;
+
   late AnimationController _pageController;
   late Animation<double> _fadeAnimation;
+
+  late Box _shoppingBox;
 
   @override
   void initState() {
@@ -30,6 +34,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen>
       curve: Curves.easeOut,
     );
 
+    _shoppingBox = Hive.box(_boxName);
+
     _pageController.forward();
   }
 
@@ -42,9 +48,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen>
   }
 
   Future<void> clearList() async {
-    final box = Hive.box('shopping_list');
-
-    if (box.isEmpty) {
+    if (_shoppingBox.isEmpty) {
       return;
     }
 
@@ -106,17 +110,36 @@ class _ShoppingListScreenState extends State<ShoppingListScreen>
     );
   }
 
+  List<ShoppingItemModel> _parseItems(Box box) {
+    final items = <ShoppingItemModel>[];
+
+    for (final value in box.values) {
+      if (value is! Map) {
+        continue;
+      }
+
+      try {
+        items.add(
+          ShoppingItemModel.fromJson(Map<dynamic, dynamic>.from(value)),
+        );
+      } catch (_) {}
+    }
+
+    return items;
+  }
+
   @override
   void dispose() {
     _pageController.dispose();
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     final colors = theme.colorScheme;
-    final shoppingBox = Hive.box('shopping_list');
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -127,8 +150,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen>
         ),
         centerTitle: true,
         actions: [
-          ValueListenableBuilder(
-            valueListenable: shoppingBox.listenable(),
+          ValueListenableBuilder<Box>(
+            valueListenable: _shoppingBox.listenable(),
             builder: (context, box, _) {
               if (box.isEmpty) {
                 return const SizedBox.shrink();
@@ -144,17 +167,10 @@ class _ShoppingListScreenState extends State<ShoppingListScreen>
           const SizedBox(width: 4),
         ],
       ),
-      body: ValueListenableBuilder(
-        valueListenable: shoppingBox.listenable(),
+      body: ValueListenableBuilder<Box>(
+        valueListenable: _shoppingBox.listenable(),
         builder: (context, box, _) {
-          final items = box.values
-              .whereType<Map>()
-              .map(
-                (item) => ShoppingItemModel.fromJson(
-                  Map<dynamic, dynamic>.from(item),
-                ),
-              )
-              .toList();
+          final items = _parseItems(box);
 
           return FadeTransition(
             opacity: _fadeAnimation,
@@ -178,53 +194,44 @@ class _ShoppingListScreenState extends State<ShoppingListScreen>
 
     final remainingCount = items.length - completedCount;
 
-    return RefreshIndicator(
-      color: colors.primary,
-      backgroundColor: colors.surface,
-      onRefresh: () async {
-        await Future<void>.delayed(const Duration(milliseconds: 150));
-      },
-      child: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(
-          parent: BouncingScrollPhysics(),
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+          sliver: SliverToBoxAdapter(
+            child: _buildHeader(
+              colors,
+              items.length,
+              completedCount,
+              remainingCount,
+            ),
+          ),
         ),
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
-            sliver: SliverToBoxAdapter(
-              child: _buildHeader(
-                colors,
-                items.length,
-                completedCount,
-                remainingCount,
-              ),
-            ),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+          sliver: SliverToBoxAdapter(
+            child: _buildProgress(colors, items.length, completedCount),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-            sliver: SliverToBoxAdapter(
-              child: _buildProgress(colors, items.length, completedCount),
-            ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 30),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final item = items[index];
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 30),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate((context, index) {
+              final item = items[index];
 
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: _ShoppingItemCard(
-                    item: item,
-                    onToggle: () => toggleItem(item),
-                    onDelete: () => removeItem(item),
-                  ),
-                );
-              }, childCount: items.length),
-            ),
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _ShoppingItemCard(
+                  item: item,
+                  onToggle: () => toggleItem(item),
+                  onDelete: () => removeItem(item),
+                ),
+              );
+            }, childCount: items.length),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

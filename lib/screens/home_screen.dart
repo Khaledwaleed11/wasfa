@@ -74,14 +74,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _loadHomeData({bool refresh = false}) async {
-    try {
-      if (!refresh) {
-        setState(() {
-          _isLoading = true;
-          _errorMessage = null;
-        });
-      }
+    if (!refresh) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    }
 
+    try {
       final results = await Future.wait([
         _mealService.getRandomMeal(),
         _mealService.getCategories(),
@@ -89,7 +89,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         RecentMealsService.getRecentMeals(),
       ]);
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
         _featuredMeal = results[0] as MealModel;
@@ -101,9 +103,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       });
 
       _pageController.forward(from: 0);
+
       _heroController.forward(from: 0);
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
         _isLoading = false;
@@ -113,28 +118,34 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _openMeal(MealModel meal) async {
-    await RecentMealsService.addRecentMeal(meal);
+    try {
+      await RecentMealsService.addRecentMeal(meal);
+    } catch (_) {}
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => RecipeDetailsScreen(mealId: meal.id)),
     );
 
-    if (!mounted) return;
-
     await _reloadRecentMeals();
   }
 
   Future<void> _reloadRecentMeals() async {
-    final result = await RecentMealsService.getRecentMeals();
+    try {
+      final result = await RecentMealsService.getRecentMeals();
 
-    if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
-    setState(() {
-      _recentMeals = result;
-    });
+      setState(() {
+        _recentMeals = result;
+      });
+    } catch (_) {}
   }
 
   void _openCategory(CategoryModel category) {
@@ -150,32 +161,46 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     switch (name.toLowerCase()) {
       case 'beef':
         return Icons.lunch_dining_rounded;
+
       case 'chicken':
         return Icons.set_meal_rounded;
+
       case 'dessert':
         return Icons.cake_rounded;
+
       case 'lamb':
         return Icons.restaurant_rounded;
+
       case 'miscellaneous':
         return Icons.restaurant_menu_rounded;
+
       case 'pasta':
         return Icons.ramen_dining_rounded;
+
       case 'pork':
         return Icons.fastfood_rounded;
+
       case 'seafood':
         return Icons.phishing_rounded;
+
       case 'side':
         return Icons.dinner_dining_rounded;
+
       case 'starter':
         return Icons.tapas_rounded;
+
       case 'vegan':
         return Icons.eco_rounded;
+
       case 'vegetarian':
         return Icons.spa_rounded;
+
       case 'breakfast':
         return Icons.free_breakfast_rounded;
+
       case 'goat':
         return Icons.restaurant_rounded;
+
       default:
         return Icons.restaurant_rounded;
     }
@@ -185,6 +210,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void dispose() {
     _pageController.dispose();
     _heroController.dispose();
+
     super.dispose();
   }
 
@@ -303,11 +329,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ],
           ),
-        ),
-        _buildIconButton(
-          colors,
-          Icons.notifications_none_rounded,
-          onTap: () {},
         ),
       ],
     );
@@ -609,7 +630,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           onAction: () async {
             await RecentMealsService.clearRecentMeals();
 
-            if (!mounted) return;
+            if (!mounted) {
+              return;
+            }
 
             setState(() {
               _recentMeals = [];
@@ -635,32 +658,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildIconButton(
-    ColorScheme colors,
-    IconData icon, {
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: colors.surface,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: colors.outlineVariant.withValues(alpha: 0.38),
-            ),
-          ),
-          child: Icon(icon, size: 21, color: colors.onSurface),
-        ),
-      ),
     );
   }
 }

@@ -8,54 +8,59 @@ class MealService {
   Future<MealModel> getRandomMeal() async {
     final data = await apiService.getRandomMeal();
 
-    final meals = data['meals'] as List?;
+    final meals = data['meals'];
 
-    if (meals == null || meals.isEmpty) {
+    if (meals is! List || meals.isEmpty) {
       throw Exception('No random meal found');
     }
 
-    return MealModel.fromJson(meals.first as Map<String, dynamic>);
+    final firstMeal = meals.first;
+
+    if (firstMeal is! Map) {
+      throw Exception('Invalid random meal response');
+    }
+
+    return MealModel.fromJson(Map<String, dynamic>.from(firstMeal));
   }
 
   Future<List<MealModel>> searchMeals(String query) async {
     final data = await apiService.searchMeals(query);
 
-    final meals = data['meals'] as List?;
-
-    if (meals == null) {
-      return [];
-    }
-
-    return meals
-        .map((meal) => MealModel.fromJson(meal as Map<String, dynamic>))
-        .toList();
+    return _parseMeals(data['meals']);
   }
 
   Future<MealModel> getMealDetails(String mealId) async {
     final data = await apiService.getMealDetails(mealId);
 
-    final meals = data['meals'] as List?;
+    final meals = data['meals'];
 
-    if (meals == null || meals.isEmpty) {
+    if (meals is! List || meals.isEmpty) {
       throw Exception('Meal not found');
     }
 
-    return MealModel.fromJson(meals.first as Map<String, dynamic>);
+    final firstMeal = meals.first;
+
+    if (firstMeal is! Map) {
+      throw Exception('Invalid meal response');
+    }
+
+    return MealModel.fromJson(Map<String, dynamic>.from(firstMeal));
   }
 
   Future<List<CategoryModel>> getCategories() async {
     final data = await apiService.getCategories();
 
-    final categories = data['categories'] as List?;
+    final categories = data['categories'];
 
-    if (categories == null) {
+    if (categories is! List) {
       return [];
     }
 
     return categories
+        .whereType<Map>()
         .map(
           (category) =>
-              CategoryModel.fromJson(category as Map<String, dynamic>),
+              CategoryModel.fromJson(Map<String, dynamic>.from(category)),
         )
         .toList();
   }
@@ -79,12 +84,13 @@ class MealService {
   }
 
   List<MealModel> _parseMeals(dynamic data) {
-    if (data == null || data is! List) {
+    if (data is! List) {
       return [];
     }
 
     return data
-        .map((meal) => MealModel.fromJson(meal as Map<String, dynamic>))
+        .whereType<Map>()
+        .map((meal) => MealModel.fromJson(Map<String, dynamic>.from(meal)))
         .toList();
   }
 }

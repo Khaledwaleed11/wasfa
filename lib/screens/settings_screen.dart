@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class SettingsScreen extends StatelessWidget {
+  static const String _appVersion = '1.0.0';
+
   final bool isDarkMode;
   final VoidCallback onThemeToggle;
 
@@ -13,6 +15,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     final colors = theme.colorScheme;
 
     return Scaffold(
@@ -22,30 +25,34 @@ class SettingsScreen extends StatelessWidget {
           physics: const BouncingScrollPhysics(),
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-              sliver: SliverToBoxAdapter(child: _buildTopHeader(colors)),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+              sliver: SliverToBoxAdapter(
+                child: _buildTopHeader(context, colors),
+              ),
             ),
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 35),
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
               sliver: SliverToBoxAdapter(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSectionTitle(
+                    _buildSectionLabel(
                       colors,
-                      'Preferences',
-                      'Personalize your experience',
+                      icon: Icons.tune_rounded,
+                      title: 'Preferences',
+                      subtitle: 'Personalize your experience',
                     ),
                     const SizedBox(height: 12),
                     _buildSettingsCard(
                       colors,
                       children: [_buildThemeTile(context, colors)],
                     ),
-                    const SizedBox(height: 28),
-                    _buildSectionTitle(
+                    const SizedBox(height: 24),
+                    _buildSectionLabel(
                       colors,
-                      'App',
-                      'Information about Wasfa',
+                      icon: Icons.info_outline_rounded,
+                      title: 'App',
+                      subtitle: 'Information about Wasfa',
                     ),
                     const SizedBox(height: 12),
                     _buildSettingsCard(
@@ -56,14 +63,19 @@ class SettingsScreen extends StatelessWidget {
                         _buildVersionTile(colors),
                       ],
                     ),
-                    const SizedBox(height: 28),
-                    _buildSectionTitle(colors, 'Support', 'Need help?'),
+                    const SizedBox(height: 24),
+                    _buildSectionLabel(
+                      colors,
+                      icon: Icons.support_agent_rounded,
+                      title: 'Support',
+                      subtitle: 'Need help?',
+                    ),
                     const SizedBox(height: 12),
                     _buildSettingsCard(
                       colors,
                       children: [_buildSupportTile(context, colors)],
                     ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 24),
                     _buildFooter(colors),
                   ],
                 ),
@@ -75,68 +87,68 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTopHeader(ColorScheme colors) {
+  Widget _buildTopHeader(BuildContext context, ColorScheme colors) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
             colors.primary,
-            Color.lerp(colors.primary, colors.primaryContainer, 0.45)!,
+            Color.lerp(colors.primary, colors.primaryContainer, 0.55)!,
           ],
         ),
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(26),
         boxShadow: [
           BoxShadow(
             color: colors.primary.withValues(alpha: 0.16),
             blurRadius: 24,
-            offset: const Offset(0, 10),
+            offset: const Offset(0, 9),
           ),
         ],
       ),
       child: Row(
         children: [
           Container(
-            width: 62,
-            height: 62,
+            width: 58,
+            height: 58,
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(18),
               border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
             ),
             child: const Icon(
               Icons.settings_rounded,
+              size: 28,
               color: Colors.white,
-              size: 29,
             ),
           ),
-          const SizedBox(width: 15),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Wasfa',
+                Text(
+                  'wasfa',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white70,
-                    letterSpacing: 0.5,
+                    color: Colors.white.withValues(alpha: 0.78),
+                    letterSpacing: 0.8,
                   ),
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 2),
                 const Text(
                   'Settings',
                   style: TextStyle(
-                    fontSize: 26,
+                    fontSize: 24,
                     fontWeight: FontWeight.w900,
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 4),
                 Text(
                   'Customize your cooking experience',
                   style: TextStyle(
@@ -153,25 +165,46 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(ColorScheme colors, String title, String subtitle) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildSectionLabel(
+    ColorScheme colors, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return Row(
       children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w900,
-            color: colors.onSurface,
+        Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: colors.primary.withValues(alpha: 0.09),
+            borderRadius: BorderRadius.circular(11),
           ),
+          child: Icon(icon, size: 17, color: colors.primary),
         ),
-        const SizedBox(height: 3),
-        Text(
-          subtitle,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w500,
-            color: colors.onSurfaceVariant,
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                  color: colors.onSurface,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -188,12 +221,12 @@ class SettingsScreen extends StatelessWidget {
         color: colors.surface,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: colors.outlineVariant.withValues(alpha: 0.32),
+          color: colors.outlineVariant.withValues(alpha: 0.28),
         ),
         boxShadow: [
           BoxShadow(
-            color: colors.shadow.withValues(alpha: 0.035),
-            blurRadius: 16,
+            color: colors.shadow.withValues(alpha: 0.025),
+            blurRadius: 18,
             offset: const Offset(0, 7),
           ),
         ],
@@ -211,14 +244,28 @@ class SettingsScreen extends StatelessWidget {
       child: InkWell(
         onTap: onThemeToggle,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+          padding: const EdgeInsets.fromLTRB(15, 14, 12, 14),
           child: Row(
             children: [
-              _buildTileIcon(
-                colors,
-                isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: isDarkMode
+                      ? colors.primary.withValues(alpha: 0.16)
+                      : colors.primary.withValues(alpha: 0.09),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Icon(
+                  isDarkMode
+                      ? Icons.dark_mode_rounded
+                      : Icons.light_mode_rounded,
+                  size: 22,
+                  color: colors.primary,
+                ),
               ),
-              const SizedBox(width: 13),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -247,10 +294,7 @@ class SettingsScreen extends StatelessWidget {
               ),
               Switch.adaptive(
                 value: isDarkMode,
-                onChanged: (_) {
-                  onThemeToggle();
-                },
-                activeThumbColor: colors.primary,
+                onChanged: (_) => onThemeToggle(),
               ),
             ],
           ),
@@ -260,57 +304,25 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Widget _buildAboutTile(BuildContext context, ColorScheme colors) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          _showAboutDialog(context, colors);
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-          child: Row(
-            children: [
-              _buildTileIcon(colors, Icons.info_outline_rounded),
-              const SizedBox(width: 13),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'About Wasfa',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                        color: colors.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Learn more about the app',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: colors.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              _buildArrow(colors),
-            ],
-          ),
-        ),
-      ),
+    return _buildActionTile(
+      context,
+      colors,
+      icon: Icons.info_outline_rounded,
+      title: 'About Wasfa',
+      subtitle: 'Learn more about the app',
+      onTap: () {
+        _showAboutDialog(context, colors);
+      },
     );
   }
 
   Widget _buildVersionTile(ColorScheme colors) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+      padding: const EdgeInsets.fromLTRB(15, 14, 15, 14),
       child: Row(
         children: [
           _buildTileIcon(colors, Icons.apps_rounded),
-          const SizedBox(width: 13),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -342,7 +354,7 @@ class SettingsScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
-              '1.0.0',
+              _appVersion,
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w900,
@@ -356,24 +368,42 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Widget _buildSupportTile(BuildContext context, ColorScheme colors) {
+    return _buildActionTile(
+      context,
+      colors,
+      icon: Icons.support_agent_rounded,
+      title: 'Help & Feedback',
+      subtitle: 'Get help or share your feedback',
+      onTap: () {
+        _showSupportDialog(context, colors);
+      },
+    );
+  }
+
+  Widget _buildActionTile(
+    BuildContext context,
+    ColorScheme colors, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
-          _showSupportDialog(context, colors);
-        },
+        onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+          padding: const EdgeInsets.fromLTRB(15, 14, 15, 14),
           child: Row(
             children: [
-              _buildTileIcon(colors, Icons.help_outline_rounded),
-              const SizedBox(width: 13),
+              _buildTileIcon(colors, icon),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Help & Feedback',
+                      title,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w900,
@@ -382,7 +412,7 @@ class SettingsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Get help or share your feedback',
+                      subtitle,
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
@@ -405,7 +435,7 @@ class SettingsScreen extends StatelessWidget {
       width: 46,
       height: 46,
       decoration: BoxDecoration(
-        color: colors.primary.withValues(alpha: 0.10),
+        color: colors.primary.withValues(alpha: 0.09),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Icon(icon, size: 21, color: colors.primary),
@@ -434,44 +464,42 @@ class SettingsScreen extends StatelessWidget {
       thickness: 1,
       indent: 74,
       endIndent: 15,
-      color: colors.outlineVariant.withValues(alpha: 0.28),
+      color: colors.outlineVariant.withValues(alpha: 0.25),
     );
   }
 
   Widget _buildFooter(ColorScheme colors) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: colors.outlineVariant.withValues(alpha: 0.32),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colors.primary.withValues(alpha: 0.07),
+            colors.secondary.withValues(alpha: 0.05),
+          ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadow.withValues(alpha: 0.035),
-            blurRadius: 16,
-            offset: const Offset(0, 7),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.10)),
       ),
       child: Row(
         children: [
           Container(
-            width: 52,
-            height: 52,
+            width: 50,
+            height: 50,
             decoration: BoxDecoration(
               color: colors.primary.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(15),
             ),
             child: Icon(
               Icons.restaurant_menu_rounded,
-              size: 26,
+              size: 25,
               color: colors.primary,
             ),
           ),
-          const SizedBox(width: 13),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -479,19 +507,18 @@ class SettingsScreen extends StatelessWidget {
                 Text(
                   'wasfa',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 17,
                     fontWeight: FontWeight.w900,
-                    letterSpacing: 1.0,
+                    letterSpacing: 0.8,
                     color: colors.onSurface,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
                   'Discover • Cook • Enjoy',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    letterSpacing: 0.3,
                     color: colors.onSurfaceVariant,
                   ),
                 ),
@@ -505,7 +532,7 @@ class SettingsScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
-              'v1.0.0',
+              'v$_appVersion',
               style: TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.w900,
@@ -532,28 +559,28 @@ class SettingsScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 74,
-                height: 74,
+                width: 76,
+                height: 76,
                 decoration: BoxDecoration(
                   color: colors.primary.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(22),
+                  borderRadius: BorderRadius.circular(23),
                 ),
                 child: Icon(
                   Icons.restaurant_menu_rounded,
-                  size: 35,
+                  size: 36,
                   color: colors.primary,
                 ),
               ),
-              const SizedBox(height: 17),
+              const SizedBox(height: 16),
               Text(
                 'wasfa',
                 style: TextStyle(
-                  fontSize: 26,
+                  fontSize: 27,
                   fontWeight: FontWeight.w900,
                   color: colors.onSurface,
                 ),
               ),
-              const SizedBox(height: 5),
+              const SizedBox(height: 4),
               Text(
                 'Your Recipe Companion',
                 textAlign: TextAlign.center,
@@ -563,17 +590,27 @@ class SettingsScreen extends StatelessWidget {
                   color: colors.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 18),
-              Text(
-                'Discover recipes, save your favorites, and organize your shopping list in one place.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 12,
-                  height: 1.6,
-                  color: colors.onSurface,
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.055),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Text(
+                  'Discover recipes, save your favorites, and organize your shopping list in one place.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.6,
+                    color: colors.onSurface,
+                  ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
